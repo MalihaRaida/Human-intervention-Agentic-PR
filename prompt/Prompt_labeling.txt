@@ -1,0 +1,218 @@
+﻿You are acting as a coder for a software-engineering research study.
+
+
+Classify each human-authored commit using the coding taxonomy below.
+—--------------------------------------------------------------------------------------------------------------
+
+
+# Codebook: Human Intervention Categories in Agent-Generated Pull Requests
+
+
+## Coding Principle
+
+
+Assign each commit exactly one primary category based on its dominant purpose. Weigh evidence in this order: (1) patch content and behavioral effect, (2) filenames and file roles, (3) commit message text. Commit-message labels (fix, refactor, chore, feat) must never determine the category by themselves. When a commit performs multiple activities, classify by the change that best explains why the human intervened.
+
+
+## 1. Functional Correctness Repair
+
+
+**Definition:** The human corrects existing implementation behavior that is incomplete, incorrect, inconsistent with intended semantics, or mishandles a runtime case. The capability already exists; the human changes how it works so it behaves correctly.
+
+
+**Inclusion criteria:** Corrects an incorrect condition, state transition, or control-flow decision; handles a previously omitted or mishandled runtime case; repairs incorrect data relationships, parameters, or API behavior; restores intended semantics of an existing feature without primarily adding new capability.
+
+
+**Exclusion criteria:** Excludes cases where the main problem is compilation, packaging, or platform compatibility; where the change is primarily visual/interactive; where only tests are corrected; or where the change primarily introduces new capability.
+
+
+**Common indicators:** fix, correctly handle, handle ..., missing, fix relations, fix ... parameters.
+
+
+## 2. Feature Completion or Extension
+
+
+**Definition:** The human adds meaningful functionality, completes an incomplete agent-generated feature, or extends the contribution with a new capability, operation, or supported use case.
+
+
+**Inclusion criteria:** Introduces a new operation, option, endpoint, workflow, or capability; adds support for an additional use case; completes substantive functionality absent from the agent's contribution; exposes new behavior to callers or users.
+
+
+**Exclusion criteria:** Excludes correction of already-intended behavior; purely visual or interactivity polish of existing capabilities; configuration changes needed only to make existing code build.
+
+
+**Common indicators:** feat, add, support, enable, implement, introduce, allow; new public methods, options, handlers, workflows, or substantial new implementation blocks.
+
+
+## 3. Test and Validation Adjustment
+
+
+**Definition:** The human's dominant intervention is adding, repairing, strengthening, or adapting tests or other validation artifacts used to verify the agent-generated contribution.
+
+
+**Inclusion criteria:** New unit, integration, regression, or end-to-end tests; corrected assertions or expected outputs; test cases adapted to intended behavior; fixture or test-configuration changes made primarily to improve validation.
+
+
+**Exclusion criteria:** Excludes cases where production behavior is substantially corrected and tests merely accompany that fix; formatting-only test changes; deletion of obsolete tests where deletion is the dominant purpose.
+
+
+**Common indicators:** test, tests, unit test, Cypress, pytest, e2e, spec; additions of assertions, fixtures, or mock data concentrated in test directories.
+
+
+## 4. Structural Refactoring
+
+
+**Definition:** The human reorganizes, renames, extracts, simplifies, or redistributes implementation structure while substantially preserving intended external functionality.
+
+
+**Inclusion criteria:** Moves or renames implementation components; extracts classes/modules/functions; reorganizes imports and module boundaries; restructures architecture or simplifies internal organization without intentionally eliminating functionality.
+
+
+**Exclusion criteria:** Excludes primarily deleting unnecessary material; deliberate runtime-semantics changes; formatting-only cleanup.
+
+
+**Common indicators:** refactor, rename, move, extract, reorganize, simplify; import updates, file relocation, module splitting, or responsibility redistribution.
+
+
+## 5. Code Cleanup
+
+
+**Definition:** The human removes unnecessary, obsolete, duplicate, generated, or over-engineered portions of the contribution so the resulting change is smaller or simpler.
+
+
+**Inclusion criteria:** Removes unused parameters, functions, imports, files, or configuration; deletes unnecessary calls, abstractions, or debug/logging statements; removes obsolete or deprecated material and accidental artifacts.
+
+
+**Exclusion criteria:** Excludes functionality moved elsewhere; formatting/lint-only cleanup; explicit reversal of a prior commit; removal that repairs incorrect runtime behavior.
+
+
+**Common indicators:** remove, unused, unnecessary, redundant, delete, cleanup; patches dominated by deletions, removed debug statements, or deleted duplicate definitions.
+
+
+## 6. User-Facing Interface and Interaction Refinement
+
+
+**Definition:** The human changes how existing functionality is displayed, styled, exposed, or interacted with, without primarily introducing new underlying domain capability.
+
+
+**Inclusion criteria:** Styling and layout adjustments; visibility changes; interaction behavior such as menus, dialogs, clicks, hover, or tooltip presentation; usability improvements; user-facing text or localization changes.
+
+
+**Exclusion criteria:** Excludes incorrect application-state or business logic; entirely new user capabilities; source-code formatting unrelated to product appearance.
+
+
+**Common indicators:** styling, layout, design, UI, display, hide, show, menu, modal, popover, tooltip, interactivity; CSS/class changes, visibility-state toggles, localized user-facing strings.
+
+
+## 7. Project Integration and Environment Maintenance
+
+
+**Definition:** The human modifies the technical scaffolding required for the contribution to build, run, package, test in CI, or fit the project's dependency and platform ecosystem, encompassing build, CI, environment, dependency, and version maintenance.
+
+
+**Inclusion criteria:** Build-system corrections; CI/workflow changes; platform-specific incompatibilities and macros; incorrect environment or resource paths; startup/package configuration failures; dependency additions, removals, or version bumps; lockfile/manifest refreshes.
+
+
+**Exclusion criteria:** Excludes ordinary application/domain runtime bugs; new product behavior involving configuration; generated files regenerated from canonical sources; formatting fixes within configuration files.
+
+
+**Common indicators:** build, CI, workflow, config, dependency, package, version, bump, docker, .env, CMake; workflow files, package manifests, lockfiles, build flags, platform attributes.
+
+
+## 8. Code Convention Conformance
+
+
+**Definition:** The human performs primarily non-behavioral corrections to satisfy formatting, linting, static-analysis, or source-style expectations.
+
+
+**Inclusion criteria:** Formatter output; lint-rule corrections; whitespace normalization; import ordering; mechanically equivalent syntax preferred by a linter; static-type corrections that do not intentionally modify runtime semantics.
+
+
+**Exclusion criteria:** Excludes substantive code redesign; removal of genuinely unused functionality; type changes that fix actual runtime defects; UI styling changes.
+
+
+**Common indicators:** lint, format, mypy, clippy, prettier, eslint, style, whitespace, type issue; import rearrangement, line wrapping.
+
+
+## 9. Documentation 
+
+
+**Definition:** The human updates explanatory, instructional, developer-facing, or release-facing information surrounding the contribution rather than its runtime behavior.
+
+
+**Inclusion criteria:** README and documentation updates; developer comments; changelog and changeset/release-note additions; explanatory source comments where documentation is the dominant purpose; usage examples intended primarily to explain functionality.
+
+
+**Exclusion criteria:** Excludes user-visible application text or translations; package version changes themselves; executable examples whose main purpose is verification.
+
+
+**Common indicators:** docs, README, changeset, changelog, comment, documentation; Markdown files, release-note files, explanatory comments.
+
+
+## 10. Version-Control Conflict Resolution
+
+
+**Definition:** The human reconciles the agent-generated contribution with diverging repository history by resolving merge or rebase conflicts rather than independently implementing new work.
+
+
+**Inclusion criteria:** Commit explicitly states conflicts are being resolved; patch spans divergent changes from multiple branches; the dominant purpose is reconciliation rather than implementation.
+
+
+**Exclusion criteria:** Excludes normal functional fixes made after a merge; explicit reversal of a prior commit; ordinary refactoring that happens to touch many files.
+
+
+**Common indicators:** resolve conflict, resolve conflicts, merge conflict, conflict resolution; unusually broad cross-file synchronization mixing competing branch states.
+
+
+## 11. Rollback or Reversion
+
+
+**Definition:** The human intentionally restores a previous state by explicitly undoing an earlier commit or change, regardless of what type of work the reverted commit originally performed.
+
+
+**Inclusion criteria:** Explicit Git revert commits; commits clearly described as reverting or rolling back an earlier change; deliberate restoration of the immediately preceding implementation.
+
+
+**Exclusion criteria:** Excludes ordinary deletion of unnecessary code; replacement of a flawed implementation with a corrected one; resolution of competing branch versions.
+
+
+**Common indicators:** "Revert ...", revert, rollback, back out, "This reverts commit ..."; patches that mechanically invert an earlier change or restore recently deleted code.
+
+
+—-----------------------------------------------------------------------------------------------------------------
+
+
+For every commit:
+
+
+1. Examine the commit message, filenames, and patch.
+2. Determine the dominant purpose of the human intervention.
+3. Assign exactly one primary category from the provided taxonomy.
+4. Do not create new categories.
+5. Do not infer information that is not supported by the commit evidence.
+6. If the evidence is insufficient or genuinely ambiguous, assign "Other."
+7. Do not use whether the PR was merged or closed when making the classification.
+
+
+
+
+Return:
+
+
+| PR ID| | Commit ID | | Category | | Brief justification| | Confidence |
+| ------- | --------- | -- | ---------- | --------------------- | ---------- |
+
+
+
+
+
+
+Confidence must be:
+
+
+- High: clear evidence directly supports the category
+- Medium: most evidence supports the category but another interpretation is plausible
+- Low: classification is uncertain
+
+
+The justification should identify concrete evidence from the commit rather than simply repeating the category definition.
