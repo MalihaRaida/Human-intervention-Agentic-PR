@@ -23,10 +23,10 @@ def build_summary(df: pd.DataFrame) -> pd.DataFrame:
         .reindex(columns=COMMIT_TYPES, fill_value=0)
         .reset_index()
         .rename(columns={
-            "state":            "PR Outcome",
-            "agent-only":       "#Agent-only PRs",
-            "human-intervened": "#Human-intervened PRs",
-            "human-only":       "#Human-only PRs",
+            "state":"PR Outcome",
+            "agent-only":"#Agent-only PRs",
+            "human-intervened":"#Human-intervened PRs",
+            "human-only":"#Human-only PRs",
         })
     )
     counts["Total PRs"] = (
