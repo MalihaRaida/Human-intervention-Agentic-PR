@@ -1,0 +1,13 @@
+Agent,Outcome,#Human-intervened PRs
+Claude_Code,closed,34/96 (35.42%)
+Claude_Code,merged,86/219 (39.27%)
+Claude_Code,open,31/76 (40.79%)
+Copilot,closed,86/1119 (7.69%)
+Copilot,merged,672/1837 (36.58%)
+Copilot,open,77/759 (10.14%)
+Cursor,closed,53/266 (19.92%)
+Cursor,merged,311/746 (41.69%)
+Cursor,open,39/132 (29.55%)
+Devin,closed,215/1676 (12.83%)
+Devin,merged,738/1867 (39.53%)
+Devin,open,21/100 (21.00%)
