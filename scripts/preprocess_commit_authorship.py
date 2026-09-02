@@ -25,8 +25,6 @@ All rows that do not match one of these signatures are labeled Human.
 Outputs
 -------
 <input>_commits_with_authorship.csv
-human_commits.csv
-agent_commits.csv
 """
 
 from __future__ import annotations
