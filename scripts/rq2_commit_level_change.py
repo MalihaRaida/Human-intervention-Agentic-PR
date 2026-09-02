@@ -6,16 +6,8 @@ Expected input: one row per changed file in a commit.
 Outputs one row per commit with:
 - number of added / modified / removed files
 - lines added / removed
-- optional modified-line total
-- PR, state, and actor identifiers
+- PR, state, and actor
 
-Example
--------
-python rq2_commit_level_changes.py file_changes.csv \
-  --pr-col pr_id --commit-col commit_sha --state-col state \
-  --actor-col actor_type --file-col filename --status-col status \
-  --additions-col additions --deletions-col deletions \
-  --output-dir results/rq2_commit
 """
 
 import argparse
