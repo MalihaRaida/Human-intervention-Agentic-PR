@@ -58,7 +58,6 @@ AGENT_SIGNATURES = {
     "Devin": [
         r"devin-ai-integration\s*\[bot\]",
         r"devin-ai-integration",
-        r"devin",
     ],
     "Copilot": [
         r"copilot",
@@ -143,25 +142,13 @@ def main() -> None:
 
     stem = Path(args.input).stem
     all_path = out_dir / f"{stem}_with_authorship.csv"
-    human_path = out_dir / f"{stem}_human.csv"
-    agent_path = out_dir / f"{stem}_agent.csv"
 
     result.to_csv(all_path, index=False)
-    result[result["commit_author_type"] == "Human"].to_csv(
-        human_path,
-        index=False,
-    )
-    result[result["commit_author_type"] == "Agent"].to_csv(
-        agent_path,
-        index=False,
-    )
+
 
     print(f"Total rows   : {len(result):,}")
-
     print("\nSaved:")
     print(f"  {all_path}")
-    print(f"  {human_path}")
-    print(f"  {agent_path}")
 
 
 if __name__ == "__main__":
