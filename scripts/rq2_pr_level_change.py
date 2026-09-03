@@ -74,6 +74,14 @@ def normalize_actor(value) -> str:
     return str(value).strip().lower()
 
 
+def filter_human_intervened_prs(df: pd.DataFrame) -> pd.DataFrame:
+    actors = df["commit_author_type"].map(normalize_actor)
+    has_human = actors.eq("human").groupby(df["pr_id"]).any()
+    has_agent = actors.eq("agent").groupby(df["pr_id"]).any()
+    intervened_pr_ids = has_human.index[has_human & has_agent]
+    return df[df["pr_id"].isin(intervened_pr_ids)].copy()
+
+
 def compute_pr_level_file_changes(df: pd.DataFrame) -> pd.DataFrame:
     work = df.copy()
     work["_actor"] = work["commit_author_type"].map(normalize_actor)
@@ -202,8 +210,9 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     outcome = "unmerged" if "unmerged" in Path(args.input).stem.lower() else "merged"
 
-    file_changes = compute_pr_level_file_changes(df)
-    line_changes = compute_pr_level_line_changes(df)
+    intervened_df = filter_human_intervened_prs(df)
+    file_changes = compute_pr_level_file_changes(intervened_df)
+    line_changes = compute_pr_level_line_changes(intervened_df)
 
     file_path = output_dir / f"{outcome}_pr_level_file_changes.csv"
     line_path = output_dir / f"{outcome}_pr_level_line_changes.csv"
