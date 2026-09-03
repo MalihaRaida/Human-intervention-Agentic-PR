@@ -11,7 +11,7 @@ import pandas as pd
 
 
 FILE_METRICS = ["modified_files", "added_files", "removed_files"]
-LINE_METRICS = ["added_lines", "removed_lines", "changed_lines"]
+LINE_METRICS = ["changed_lines", "added_lines", "removed_lines"]
 OUTCOMES = ["closed", "open"]
 ACTORS = ["Human", "Agent"]
 COLORS = {"Human": "#F58518", "Agent": "#4C78A8"}
@@ -22,14 +22,26 @@ def load_actor_metrics(
 ) -> pd.DataFrame:
     changes = pd.read_csv(changes_path)
     mapping = pd.read_csv(mapping_path, low_memory=False)
-    required_mapping = {"pr_id", "state", "pr_commit_type"}
+    required_mapping = {"pr_id", "state"}
     missing_mapping = required_mapping - set(mapping.columns)
     if missing_mapping:
         raise KeyError(f"Mapping file is missing columns: {sorted(missing_mapping)}")
 
-    state_by_pr = mapping.loc[
-        mapping["pr_commit_type"] == "human-intervened", ["pr_id", "state"]
-    ].drop_duplicates(subset=["pr_id"])
+    state_by_pr = mapping[["pr_id", "state"]].drop_duplicates(subset=["pr_id"])
+    if "commit_author_type" in changes.columns:
+        if "changed_lines" in metrics and "changed_lines" not in changes.columns:
+            changes = changes.rename(columns={"modified_lines": "changed_lines"})
+        needed = ["pr_id", "commit_author_type", *metrics]
+        missing = [column for column in needed if column not in changes.columns]
+        if missing:
+            raise KeyError(f"Changes file is missing columns: {missing}")
+        data = changes[["pr_id", "commit_author_type", *metrics]].copy()
+        data["actor"] = data.pop("commit_author_type").astype(str).str.strip().str.title()
+        data = data[data["actor"].isin(ACTORS)]
+        data = data.merge(state_by_pr, on="pr_id", how="left")
+        data["state"] = data["state"].astype(str).str.strip().str.lower()
+        return data[data["state"].isin(OUTCOMES)].copy()
+
     records = []
     for actor in ACTORS:
         prefix = actor.lower()
@@ -63,7 +75,10 @@ def plot_changes(df: pd.DataFrame, metrics: list[str], unit: str, output_path: P
                 ).dropna()
                 groups.append(values)
                 positions.append(index * 3 + offset)
-            labels.append(metric.replace(f"_{unit.lower()}", "").title())
+            label = "Modified" if metric == "changed_lines" else metric.replace(
+                f"_{unit.lower()}", ""
+            ).title()
+            labels.append(label)
 
         boxes = ax.boxplot(
             groups, positions=positions, widths=0.7, showfliers=False, patch_artist=True
@@ -75,7 +90,7 @@ def plot_changes(df: pd.DataFrame, metrics: list[str], unit: str, output_path: P
         ax.set_ylabel(f"Number of {unit}" if outcome == "closed" else "")
         ax.legend([boxes["boxes"][0], boxes["boxes"][1]], ACTORS, loc="upper right")
 
-    fig.suptitle(f"Human-Intervened Unmerged PRs: {unit} Changes")
+    fig.suptitle(f"Unmerged PRs: {unit} Changes")
     fig.tight_layout()
     fig.savefig(output_path, dpi=300)
     plt.close(fig)
@@ -86,10 +101,12 @@ def main() -> None:
     parser.add_argument(
         "--file-changes",
         default="results/rq2/unmerged_pr_level_file_changes.csv",
+        help="Unmerged PR-level or commit-level file changes CSV.",
     )
     parser.add_argument(
         "--line-changes",
         default="results/rq2/unmerged_pr_level_line_changes.csv",
+        help="Unmerged PR-level or commit-level line changes CSV.",
     )
     parser.add_argument(
         "--mapping",
@@ -99,15 +116,26 @@ def main() -> None:
     parser.add_argument("--output-dir", default="figures/rq2")
     args = parser.parse_args()
 
+    file_source = pd.read_csv(args.file_changes, nrows=1)
+    line_source = pd.read_csv(args.line_changes, nrows=1)
+    level = "commit_level" if "commit_author_type" in file_source.columns else "pr_level"
+    if ("commit_author_type" in line_source.columns) != (level == "commit_level"):
+        raise ValueError("File and line change inputs must use the same aggregation level.")
     file_data = load_actor_metrics(args.file_changes, args.mapping, FILE_METRICS)
     line_data = load_actor_metrics(args.line_changes, args.mapping, LINE_METRICS)
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    plot_changes(file_data, FILE_METRICS, "Files", output_dir / "unmerged_file_changes_boxplot.png")
-    plot_changes(line_data, LINE_METRICS, "Lines", output_dir / "unmerged_line_changes_boxplot.png")
+    plot_changes(
+        file_data, FILE_METRICS, "Files",
+        output_dir / f"unmerged_{level}_file_changes_boxplot.png",
+    )
+    plot_changes(
+        line_data, LINE_METRICS, "Lines",
+        output_dir / f"unmerged_{level}_line_changes_boxplot.png",
+    )
 
-    print(f"Saved closed/open file and line boxplots to {output_dir}")
+    print(f"Saved closed/open unmerged {level.replace('_', '-')} boxplots to {output_dir}")
 
 
 if __name__ == "__main__":

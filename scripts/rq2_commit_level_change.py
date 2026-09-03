@@ -34,6 +34,12 @@ def normalize_status(value) -> str:
     return mapping.get(s, s)
 
 
+def filter_prs_with_human_commits(df: pd.DataFrame, actor_col: str) -> pd.DataFrame:
+    actors = df[actor_col].astype(str).str.strip().str.lower()
+    human_pr_ids = df.loc[actors == "human", "pr_id"].unique()
+    return df[df["pr_id"].isin(human_pr_ids)].copy()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("input")
@@ -59,7 +65,7 @@ def main() -> None:
     if missing:
         raise KeyError(f"Missing columns: {missing}")
 
-    w = df.copy()
+    w = filter_prs_with_human_commits(df, args.actor_col)
     w["_status"] = w[args.status_col].map(normalize_status)
     for c in [args.additions_col, args.deletions_col]:
         w[c] = pd.to_numeric(w[c], errors="coerce").fillna(0)
@@ -108,14 +114,7 @@ def main() -> None:
     file_counts.to_csv(file_path, index=False)
     line_counts.to_csv(line_path, index=False)
 
-    # summary = result.groupby([args.state_col, args.actor_col])[
-    #     [c for c in [
-    #         "added_files", "modified_files", "removed_files",
-    #         "added_lines", "modified_lines", "removed_lines"
-    #     ] if c in result.columns]
-    # ].agg(["count", "median", "mean"]).round(3)
-    # summary.to_csv(out / "commit_level_summary.csv")
-
+    print(f"Included human-intervened or human-only PRs: {w[args.pr_col].nunique():,}")
     print(f"Saved {len(file_counts):,} commit-level file-change records: {file_path}")
     print(f"Saved {len(line_counts):,} commit-level line-change records: {line_path}")
 
